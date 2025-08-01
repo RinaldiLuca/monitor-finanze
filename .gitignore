@@ -1,3 +1,5 @@
 *.pdf
 *.json
 *.png
+*.sqlite3
+*__pycache__
