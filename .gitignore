@@ -3,3 +3,4 @@
 *.png
 *.sqlite3
 *__pycache__
+.\context.txt

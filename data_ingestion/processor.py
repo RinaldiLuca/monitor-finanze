@@ -1,0 +1,90 @@
+from datetime import date
+from sqlalchemy.ext.asyncio import AsyncSession
+from database import crud
+from database.models import Transaction
+from data_ingestion.matcher import should_update
+from data_models.transaction import (
+    OcrTransactionRaw,
+    ApiTransactionRaw,
+    ConsolidatedTransaction,
+)
+
+
+async def process_transactions(
+    db: AsyncSession,
+    raw_txs: list[OcrTransactionRaw | ApiTransactionRaw],
+    date_from: date,
+    date_to: date,
+):
+    existing_txs = await crud.load_existing_transactions(db, date_from, date_to)
+
+    for raw in raw_txs:
+        incoming = ConsolidatedTransaction.from_raw(raw)
+
+        if incoming.source == "api":
+            await process_ApiTransaction(
+                db=db, incoming=incoming, existing_txs=existing_txs
+            )
+        elif incoming.source == "pdf":
+            await process_OcrTransaction(
+                db=db, incoming=incoming, existing_txs=existing_txs
+            )
+        else:
+            pass
+
+
+async def process_ApiTransaction(
+    db: AsyncSession, incoming: ConsolidatedTransaction, existing_txs: list[Transaction]
+):
+    # I get the first element is exist, None otherwise
+    same_external_id = next(
+        (tx for tx in existing_txs if tx.external_id == incoming.external_id), None
+    )
+    same_hash_pdfs = next(
+        (
+            tx
+            for tx in existing_txs
+            if (tx.hash_key == incoming.hash_key and tx.source == "pdf")
+        ),
+        None,
+    )  # check the hash only whether the source is 'pdf'
+
+    updated_id = None
+    if same_external_id is not None:
+        if should_update(same_external_id, incoming):
+            await crud.update_transaction(db, same_external_id.id, incoming)
+            updated_id = same_external_id.id
+    elif same_hash_pdfs is not None:
+        await crud.update_transaction(db, same_hash_pdfs.id, incoming)
+        updated_id = same_hash_pdfs.id
+    else:
+        await crud.create_transaction(db, incoming)
+
+    to_remove = next((tx for tx in existing_txs if tx.id == updated_id), None)
+    if to_remove is not None:
+        existing_txs.remove(to_remove)
+
+
+"""async def process_OcrTransaction(
+    db: AsyncSession,
+    incoming: ConsolidatedTransaction,
+    existing_txs: list[Transaction]
+):
+    # I get the first element is exist, None otherwise
+    same_external_id = next((tx for tx in existing_txs if tx.external_id == incoming.external_id), None)
+    same_hash_pdfs = next((tx for tx in existing_txs if (tx.hash_key == incoming.hash_key and tx.source == 'pdf')), None) # check the hash only whether the source is 'pdf'
+
+    updated_id = None
+    if same_external_id is not None:
+        if should_update(same_external_id, incoming):
+            await crud.update_transaction(db, same_external_id.id, incoming)
+            updated_id = same_external_id.id
+    elif same_hash_pdfs is not None:
+        await crud.update_transaction(db, same_hash_pdfs.id, incoming)
+        updated_id = same_hash_pdfs.id
+    else:
+        await crud.create_transaction(db, incoming)
+
+    to_remove = next((tx for tx in existing_txs if tx.id == updated_id), None)
+    if to_remove is not None:
+        existing_txs.remove(to_remove)"""
