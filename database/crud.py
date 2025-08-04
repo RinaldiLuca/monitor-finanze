@@ -70,9 +70,9 @@ async def update_transaction(
     return result.rowcount  # numero di righe aggiornate
 
 
-async def get_transactions(db: AsyncSession):
-    result = await db.execute(select(Transaction))
-    return result.scalars().all()
+# async def get_transactions(db: AsyncSession):
+#     result = await db.execute(select(Transaction))
+#     return result.scalars().all()
 
 
 async def load_existing_transactions(

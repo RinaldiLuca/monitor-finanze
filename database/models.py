@@ -17,3 +17,4 @@ class Transaction(Base):
     description: Mapped[str] = mapped_column(nullable=False)
     category: Mapped[str | None] = mapped_column(nullable=True)
     account: Mapped[str | None] = mapped_column(nullable=True)
+    source: Mapped[str] = mapped_column(nullable=False)
