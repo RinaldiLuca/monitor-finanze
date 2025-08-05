@@ -5,7 +5,7 @@ import hashlib
 
 
 class BaseTransaction(BaseModel):
-    booking_dt: date
+    booking_dt: date | None = None
     value_dt: date
     amount: float
     description: str | None = None
@@ -25,19 +25,13 @@ class ApiTransactionRaw(BaseTransaction):
 
 class OcrTransactionRaw(BaseTransaction):
     source_file_id: str | None = None  # filename+rownumber
-    filename = str
-    row = int
+    filename: str
+    row: int
     source: Literal["pdf"] = "pdf"
 
-    @field_validator("source_file_id", mode="before")
-    @classmethod
-    def generate_source_file_id(cls, v, info):
-        values = info.data
-        filename = values.get("filename")
-        row = values.get("row")
-        if filename is not None and row is not None:
-            return f"{filename}__{row}"
-        return v
+    def model_post_init(self, __context):
+        if self.filename and self.row is not None:
+            self.source_file_id = f"{self.filename}__{self.row}"
 
 
 class ConsolidatedTransaction(BaseTransaction):
