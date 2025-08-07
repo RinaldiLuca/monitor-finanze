@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, timedelta
+from typing import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import crud
 from database.models import Transaction
@@ -12,10 +13,12 @@ from data_models.transaction import (
 
 async def process_transactions(
     db: AsyncSession,
-    raw_txs: list[OcrTransactionRaw | ApiTransactionRaw],
-    date_from: date,
-    date_to: date,
+    raw_txs: Sequence[OcrTransactionRaw | ApiTransactionRaw],
+    # date_from: date,
+    # date_to: date,
 ):
+    date_from = min([tx.value_dt for tx in raw_txs]) + timedelta(days=-15)
+    date_to = max([tx.value_dt for tx in raw_txs]) + timedelta(days=15)
     existing_txs = await crud.load_existing_transactions(db, date_from, date_to)
 
     for raw in raw_txs:

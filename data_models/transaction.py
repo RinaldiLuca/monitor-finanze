@@ -5,9 +5,9 @@ import hashlib
 
 
 class BaseTransaction(BaseModel):
-    booking_dt: date | str | None = None
-    value_dt: date | str | None
-    amount: float | str | None
+    booking_dt: date | None = None
+    value_dt: date
+    amount: float
     description: str | None = None
 
     @field_validator("description", mode="before")
@@ -56,8 +56,10 @@ class ApiTransactionRaw(BaseTransaction):
 class OcrTransactionRaw(BaseTransaction):
     source_file_id: str | None = None  # filename+rownumber
     filename: str
+    page: int
+    tab: int
     row: int
-    negative_amount: float | str | None = None
+    negative_amount: float | None = None
     source: Literal["pdf"] = "pdf"
 
     @field_validator("negative_amount", mode="before")
@@ -66,8 +68,8 @@ class OcrTransactionRaw(BaseTransaction):
         return cls.parse_float(v)
 
     def model_post_init(self, __context):
-        if self.filename and self.row is not None:
-            self.source_file_id = f"{self.filename}__{self.row}"
+        if self.filename:  # and self.row is not None and self.row is not None:
+            self.source_file_id = f"{self.filename}_{self.page}_{self.tab}_{self.row}"
         if (
             isinstance(self.amount, float)
             and isinstance(self.negative_amount, float)
@@ -79,13 +81,17 @@ class OcrTransactionRaw(BaseTransaction):
 class ConsolidatedTransaction(BaseTransaction):
     external_id: str | None = None
     source_file_id: str | None = None
-    row: int | None = None
     source: Literal["api", "pdf"]
     hash_key: str | None = None
 
+    category: None = None
+    account: None = None
+
     @classmethod
     def from_raw(cls, raw_tx: BaseModel) -> "ConsolidatedTransaction":
-        data = raw_tx.model_dump()
+        data = (
+            raw_tx.model_dump()
+        )  # exclude={"filename", "tab", "row", "negative_amount"})
         relevant = f"{data['value_dt']}_{data['amount']}_{(data.get('description') or '').lower()}"
         data["hash_key"] = hashlib.sha256(relevant.encode()).hexdigest()
         return cls.model_validate(data)
