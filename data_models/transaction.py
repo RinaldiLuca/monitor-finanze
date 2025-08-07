@@ -5,9 +5,9 @@ import hashlib
 
 
 class BaseTransaction(BaseModel):
-    booking_dt: date | None = None
-    value_dt: date
-    amount: float
+    booking_dt: date | str | None = None
+    value_dt: date | str | None
+    amount: float | str | None
     description: str | None = None
 
     @field_validator("description", mode="before")
@@ -57,7 +57,7 @@ class OcrTransactionRaw(BaseTransaction):
     source_file_id: str | None = None  # filename+rownumber
     filename: str
     row: int
-    negative_amount: float | None = None
+    negative_amount: float | str | None = None
     source: Literal["pdf"] = "pdf"
 
     @field_validator("negative_amount", mode="before")
@@ -68,7 +68,11 @@ class OcrTransactionRaw(BaseTransaction):
     def model_post_init(self, __context):
         if self.filename and self.row is not None:
             self.source_file_id = f"{self.filename}__{self.row}"
-        if self.negative_amount is not None:
+        if (
+            isinstance(self.amount, float)
+            and isinstance(self.negative_amount, float)
+            and self.negative_amount is not None
+        ):  # just to silence pydantic
             self.amount -= self.negative_amount
 
 
