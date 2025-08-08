@@ -37,12 +37,13 @@ from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from database.models import Transaction
+from database.schemas import TransactionCreate, TransactionRead
 
 # from database.schemas import TransactionCreate
-from data_models.transaction import ConsolidatedTransaction
+# from data_models.transaction import ConsolidatedTransaction
 
 
-async def create_transaction(db: AsyncSession, data: ConsolidatedTransaction):
+async def create_transaction(db: AsyncSession, data: TransactionCreate) -> Transaction:
     db_item = Transaction(**data.model_dump())
     db.add(db_item)
     await db.commit()
@@ -51,7 +52,7 @@ async def create_transaction(db: AsyncSession, data: ConsolidatedTransaction):
 
 
 async def update_transaction(
-    db: AsyncSession, transaction_id: int, updated_data: ConsolidatedTransaction
+    db: AsyncSession, transaction_id: int, updated_data: TransactionCreate
 ) -> int:
     update_fields = {
         field: value
@@ -76,8 +77,11 @@ async def update_transaction(
 
 
 async def load_existing_transactions(
-    db: AsyncSession, date_from: date, date_to: date
-) -> list[Transaction]:  # dict[str, Transaction]:
+    # parametrizza per rendere nullable le date
+    db: AsyncSession,
+    date_from: date,
+    date_to: date,
+) -> list[TransactionRead]:  # dict[str, Transaction]:
     result = await db.execute(
         select(Transaction).where(
             Transaction.value_dt >= date_from, Transaction.value_dt <= date_to
@@ -85,4 +89,6 @@ async def load_existing_transactions(
     )
     transactions = result.scalars().all()
     # Costruisci un dict hash_key -> Transaction per accesso rapido
-    return [tx for tx in transactions]  # {tx.hash_key: tx for tx in transactions}
+    return [
+        TransactionRead.model_validate(tx) for tx in transactions
+    ]  # {tx.hash_key: tx for tx in transactions}

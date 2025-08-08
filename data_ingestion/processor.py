@@ -3,11 +3,12 @@ from typing import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import crud
 from database.models import Transaction
+from database.schemas import TransactionCreate, TransactionRead
 from data_ingestion.matcher import should_update
 from data_models.transaction import (
     OcrTransactionRaw,
     ApiTransactionRaw,
-    ConsolidatedTransaction,
+    # ConsolidatedTransaction,
 )
 
 
@@ -22,7 +23,7 @@ async def process_transactions(
     existing_txs = await crud.load_existing_transactions(db, date_from, date_to)
 
     for raw in raw_txs:
-        incoming = ConsolidatedTransaction.from_raw(raw)
+        incoming = TransactionCreate.model_validate(raw.model_dump())
 
         if incoming.source == "api":
             await process_ApiTransaction(
@@ -37,7 +38,7 @@ async def process_transactions(
 
 
 async def process_ApiTransaction(
-    db: AsyncSession, incoming: ConsolidatedTransaction, existing_txs: list[Transaction]
+    db: AsyncSession, incoming: TransactionCreate, existing_txs: list[TransactionRead]
 ):
     # I get the first element is exist, None otherwise
     same_external_id = next(
@@ -69,7 +70,7 @@ async def process_ApiTransaction(
 
 
 async def process_OcrTransaction(
-    db: AsyncSession, incoming: ConsolidatedTransaction, existing_txs: list[Transaction]
+    db: AsyncSession, incoming: TransactionCreate, existing_txs: list[TransactionRead]
 ):
     # I get the first element is exist, None otherwise
     same_sourcef_id = next(

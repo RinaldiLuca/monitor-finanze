@@ -1,8 +1,10 @@
 from database.models import Transaction
-from data_models.transaction import ConsolidatedTransaction
+
+# from data_models.transaction import BaseTransaction
+from database.schemas import TransactionCreate, TransactionRead
 
 
-def should_update(existing: Transaction, incoming: ConsolidatedTransaction) -> bool:
+def should_update(existing: TransactionRead, incoming: TransactionCreate) -> bool:
     return any(
         [
             existing.amount != incoming.amount,
