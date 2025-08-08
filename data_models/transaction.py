@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 from datetime import date, datetime
 from typing import Literal
 import hashlib
@@ -9,6 +9,9 @@ class BaseTransaction(BaseModel):
     value_dt: date
     amount: float
     description: str | None = None
+    category: str | None = None
+    account: str | None = None
+    hash_key: str | None = None
 
     @field_validator("description", mode="before")
     @classmethod
@@ -47,6 +50,16 @@ class BaseTransaction(BaseModel):
             raise ValueError(f"Data in formato non valido: {v}")
         return v
 
+    @model_validator(mode="after")
+    def set_hash_key(self):
+        """Calcola l'hash solo dopo che tutti i campi sono stati trasformati."""
+        if not self.hash_key:
+            relevant = (
+                f"{self.value_dt}_{self.amount}_{(self.description or '').lower()}"
+            )
+            self.hash_key = hashlib.sha256(relevant.encode()).hexdigest()
+        return self
+
 
 class ApiTransactionRaw(BaseTransaction):
     external_id: str
@@ -78,21 +91,21 @@ class OcrTransactionRaw(BaseTransaction):
             self.amount -= self.negative_amount
 
 
-class ConsolidatedTransaction(BaseTransaction):
-    ## Valuta se spostre questa classe nello schema del database, per poi nel process utilizzare direttamente la classe dallo schema, valutare se utilizzare CreateTransaction
-    external_id: str | None = None
-    source_file_id: str | None = None
-    source: Literal["api", "pdf"]
-    hash_key: str | None = None
+# class ConsolidatedTransaction(BaseTransaction):
+#     ## Valuta se spostre questa classe nello schema del database, per poi nel process utilizzare direttamente la classe dallo schema, valutare se utilizzare CreateTransaction
+#     external_id: str | None = None
+#     source_file_id: str | None = None
+#     source: Literal["api", "pdf"]
+#     hash_key: str | None = None
 
-    category: None = None
-    account: None = None
+#     category: None = None
+#     account: None = None
 
-    @classmethod
-    def from_raw(cls, raw_tx: BaseModel) -> "ConsolidatedTransaction":
-        data = (
-            raw_tx.model_dump()
-        )  # exclude={"filename", "tab", "row", "negative_amount"})
-        relevant = f"{data['value_dt']}_{data['amount']}_{(data.get('description') or '').lower()}"
-        data["hash_key"] = hashlib.sha256(relevant.encode()).hexdigest()
-        return cls.model_validate(data)
+#     @classmethod
+#     def from_raw(cls, raw_tx: BaseModel) -> "ConsolidatedTransaction":
+#         data = (
+#             raw_tx.model_dump()
+#         )  # exclude={"filename", "tab", "row", "negative_amount"})
+#         relevant = f"{data['value_dt']}_{data['amount']}_{(data.get('description') or '').lower()}"
+#         data["hash_key"] = hashlib.sha256(relevant.encode()).hexdigest()
+#         return cls.model_validate(data)
