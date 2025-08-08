@@ -79,6 +79,7 @@ class OcrTransactionRaw(BaseTransaction):
 
 
 class ConsolidatedTransaction(BaseTransaction):
+    ## Valuta se spostre questa classe nello schema del database, per poi nel process utilizzare direttamente la classe dallo schema, valutare se utilizzare CreateTransaction
     external_id: str | None = None
     source_file_id: str | None = None
     source: Literal["api", "pdf"]
