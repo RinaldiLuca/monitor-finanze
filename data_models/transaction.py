@@ -2,6 +2,7 @@ from pydantic import BaseModel, field_validator, model_validator
 from datetime import date, datetime
 from typing import Literal
 import hashlib
+import re
 
 
 class BaseTransaction(BaseModel):
@@ -19,7 +20,7 @@ class BaseTransaction(BaseModel):
         if v.strip() == "":
             return None
         else:
-            return v
+            return v.replace("\n", " ")
 
     @staticmethod
     def parse_float(v) -> float:
@@ -29,7 +30,10 @@ class BaseTransaction(BaseModel):
             elif "," in v:
                 return float(v.replace(".", "").replace(",", "."))
             else:
-                raise ValueError
+                try:
+                    return float(v)
+                except Exception as e:
+                    raise e
         else:
             return v
 
@@ -54,9 +58,12 @@ class BaseTransaction(BaseModel):
     def set_hash_key(self):
         """Calcola l'hash solo dopo che tutti i campi sono stati trasformati."""
         if not self.hash_key:
-            relevant = (
-                f"{self.value_dt}_{self.amount}_{(self.description or '').lower()}"
+            dsk = (
+                re.sub(r"[^a-zA-Z0-9]", "", self.description)
+                if self.description is not None
+                else ""
             )
+            relevant = f"{self.value_dt}_{self.amount}_{dsk.lower()}"
             self.hash_key = hashlib.sha256(relevant.encode()).hexdigest()
         return self
 
