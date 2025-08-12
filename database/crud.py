@@ -79,8 +79,8 @@ async def update_transaction(
 async def load_existing_transactions(
     # parametrizza per rendere nullable le date
     db: AsyncSession,
-    date_from: date,
-    date_to: date,
+    date_from: date = date.fromisocalendar(1950, 1, 1),
+    date_to: date = date.fromisocalendar(2100, 1, 1),
 ) -> list[TransactionRead]:  # dict[str, Transaction]:
     result = await db.execute(
         select(Transaction).where(
