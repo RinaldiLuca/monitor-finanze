@@ -62,6 +62,7 @@ async def process_ApiTransaction(
         await crud.update_transaction(db, same_hash_pdfs.id, incoming)
         updated_id = same_hash_pdfs.id
     else:
+        # Assegna la Macrocategoria
         await crud.create_transaction(db, incoming)
 
     to_remove = next((tx for tx in existing_txs if tx.id == updated_id), None)
@@ -91,6 +92,7 @@ async def process_OcrTransaction(
             await crud.update_transaction(db, same_hash.id, incoming)
             updated_id = same_hash.id
     else:
+        # Assegna la Macrocategoria
         await crud.create_transaction(db, incoming)
 
     to_remove = next((tx for tx in existing_txs if tx.id == updated_id), None)
