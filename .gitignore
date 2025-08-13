@@ -4,3 +4,31 @@
 *.sqlite3
 *__pycache__
 context.txt
+
+# ======================
+# Frontend (Next.js)
+# ======================
+
+# Dependency directories
+/frontend/node_modules/
+
+# Next.js build output
+/frontend/.next/
+/frontend/out/
+
+# Next.js cache
+/frontend/.turbo/
+/frontend/.vercel/
+
+# Logs
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+
+# Env files
+/frontend/.env
+/frontend/.env.local
+/frontend/.env.development.local
+/frontend/.env.test.local
+/frontend/.env.production.local
