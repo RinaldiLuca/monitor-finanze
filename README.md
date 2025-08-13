@@ -1,80 +1,96 @@
-# 📍 Roadmap di sviluppo – Expense Tracker Personale
+---
+
+# 📍 Roadmap di sviluppo – Monitor Finanze
 
 ---
 
-## 🔹 FASE 1: Fondamenta (Data Ingestion e Normalizzazione)
-⏱️ Tempo stimato: 1–2 settimane
+## 🔹 **FASE 1: Fondamenta (Data Ingestion e Normalizzazione)**
 
-🎯 **Obiettivo**: recuperare e standardizzare le transazioni
+🎯 **Obiettivo**: Recuperare e standardizzare le transazioni
 
-- [ ] Definire schema transazione standard (data, importo, descrizione, categoria, conto, tipo_movimento, id_transazione)
-- [ ] Sviluppare modulo per API bancarie
-- [ ] Normalizzare formato dati bancari
-- [ ] Sviluppare modulo OCR per PDF (pdfplumber)
-- [ ] Estrarre righe transazioni e normalizzarle
-- [ ] Persistenza locale SQLite
-- [ ] Esportazione opzionale su Google Sheets
+* [x] Definito schema transazione standard (`external_id`, date, importo, descrizione, categoria, conto, tipo movimento, hash riga OCR)
+* [x] Modulo per API bancarie GoCardless
+* [x] Modulo OCR per estratti conto PDF (`pdfplumber`)
+* [x] Normalizzazione formato transazioni API / OCR
+* [x] Persistenza locale su SQLite con SQLAlchemy Async
+* [ ] Integrazione esportazione opzionale su Google Sheets
 
 ---
 
-## 🔹 FASE 2: Backend API e Task Schedulati
-⏱️ Tempo stimato: 1–2 settimane
+## 🔹 **FASE 2: Backend API (FastAPI)**
 
-🎯 **Obiettivo**: separare raccolta dati e UI via API
+🎯 **Obiettivo**: Separare logica di raccolta dati e UI
 
-- [ ] Set up ambiente Python con FastAPI o Flask
-- [ ] Endpoint REST: /transactions, /categories, /summary, /sync
-- [ ] Scheduler (cron o APScheduler) per sync giornaliero
-- [ ] Logging dei job schedulati
-
----
-
-## 🔹 FASE 3: Analisi Dati e Categorizzazione
-⏱️ Tempo stimato: 1 settimana
-
-🎯 **Obiettivo**: categorizzare e aggregare i dati
-
-- [ ] Categorizzazione automatica (regex, keyword)
-- [ ] Classificazione manuale fallback
-- [ ] Analisi principali: spesa mensile, per categoria, bilancio
-- [ ] Rilevamento anomalie (spese fuori media)
-- [ ] Esportazione PDF / CSV report mensile
+* [x] Setup progetto FastAPI con SQLAlchemy Async
+* [x] Endpoint REST `/transactions` (lista transazioni)
+* [ ] Endpoint `/categories` (lista categorie)
+* [ ] Endpoint `/summary` (riepilogo aggregato)
+* [ ] Endpoint `/sync` (avvio manuale sincronizzazione)
+* [ ] Scheduler (APScheduler) per sync giornaliero
+* [ ] Logging job schedulati
 
 ---
 
-## 🔹 FASE 4: Frontend in Next.js
-⏱️ Tempo stimato: 2–3 settimane
+## 🔹 **FASE 3: Categorizzazione e Analisi Dati**
 
-🎯 **Obiettivo**: dashboard interattiva
+🎯 **Obiettivo**: Classificare automaticamente e analizzare le spese
 
-- [ ] Setup progetto Next.js con Tailwind CSS
-- [ ] Autenticazione (NextAuth / Clerk, opzionale)
-- [ ] Pagina transazioni (tabella, filtro, ricerca)
-- [ ] Pagina spese/budget (grafici torta, barre)
-- [ ] Reportistica e riepilogo
-- [ ] Collegamento al backend (fetch API REST)
+* **Macro-classificazione (regex / regole)**
+
+  * [ ] Bonifico
+  * [ ] Transazione bancomat
+  * [ ] Carta di credito
+  * [ ] Stipendio / entrata ricorrente
+
+* **Classificazione di dettaglio**
+
+  * [ ] Regole keyword (es. “COOP” → “Spesa”)
+  * [ ] Matching esercente via ricerca web / API esterne
+  * [ ] Modello ML supervisionato (allenato su storico)
+  * [ ] Fallback manuale
+
+* **Analisi base**
+
+  * [ ] Spesa mensile
+  * [ ] Spesa per categoria
+  * [ ] Bilancio entrate/uscite
+  * [ ] Rilevamento anomalie (spese fuori media)
+  * [ ] Esportazione PDF / CSV report
 
 ---
 
-## 🔹 FASE 5: Hosting e Deployment
-⏱️ Tempo stimato: 1 settimana
+## 🔹 **FASE 4: Frontend Next.js**
 
-🎯 **Obiettivo**: rendere l'app accessibile online
+🎯 **Obiettivo**: Dashboard interattiva minimale
 
-- [ ] Hosting frontend su Vercel
-- [ ] Hosting backend Python su Render o Railway
-- [ ] Database su Supabase / PlanetScale / ElephantSQL
-- [ ] Gestione variabili ambiente e sicurezza
+* [x] Setup progetto Next.js + Tailwind CSS
+* [x] Pagina transazioni (tabella, layout responsive)
+* [ ] Filtro / ricerca transazioni
+* [ ] Grafico spese per macro-categoria
+* [ ] Pagina riepilogo mensile
+* [ ] Collegamento al backend tramite API REST
 
 ---
 
-## 🔹 FASE 6: Miglioramenti e Scalabilità
-⏱️ Tempo stimato: ongoing
+## 🔹 **FASE 5: Hosting e Deployment**
 
-🎯 **Obiettivo**: stabilizzare e ampliare
+🎯 **Obiettivo**: Rendere l’app accessibile online
 
-- [ ] Tag automatico spese (ML?)
-- [ ] Multi-account / multi-utente
-- [ ] Mobile-friendly design
-- [ ] Grafici avanzati (es. cash flow, risparmi)
-- [ ] Import/export CSV manuale
+* [ ] Hosting frontend su Vercel
+* [ ] Hosting backend su Render / Railway
+* [ ] Database remoto (Supabase / ElephantSQL)
+* [ ] Gestione variabili ambiente e sicurezza
+
+---
+
+## 🔹 **FASE 6: Miglioramenti Futuri**
+
+🎯 **Obiettivo**: Stabilizzare e ampliare
+
+* [ ] Mobile-friendly design avanzato
+* [ ] Multi-account / multi-utente
+* [ ] Grafici avanzati (cash flow, trend risparmio)
+* [ ] Import/export CSV manuale
+* [ ] Notifiche spese rilevanti / alert budget
+
+---
