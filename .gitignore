@@ -1,4 +1,5 @@
 *.pdf
+.env
 *.json
 *.png
 *.sqlite3

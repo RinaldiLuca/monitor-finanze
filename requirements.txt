@@ -4,3 +4,8 @@ Pillow
 opencv-python
 numpy
 pdfplumber
+SQLAlchemy
+pdfplumber
+requests
+pydantic
+fastapi
